@@ -35,14 +35,14 @@ Emacsians complain that <code>eshell</code> has poor documentation, but I believ
 </p>
 
 <p>
-During EmacsConf 2022, I <a href="https://emacsconf.org/2022/talks/eshell/">gave a lightning talk</a> with 10 minutes (actually 14) to present the top 10 Reasons why you Retry Eshell. But the talk ballooned, and I felt the content was <i>too condensed</i> to be useful. This essay should fill in a lot of the details (as well as links to the extension code).
+During EmacsConf 2022, I <a href="https://emacsconf.org/2022/talks/eshell/">gave a lightning talk</a> with 10 minutes (actually 14) to present the top 10 Reasons why you Retry Eshell. But the talk ballooned, and I felt the content was <i>too condensed</i> to be useful. This essay should fill in a lot of the details (as well as links to the extension code).<!--COMMENT For consistency, maybe downcase everything after "top 10" or upcase the first letter of each word -->
 </p>
 
 <div id="outline-container-orgb057078" class="outline-2">
 <h2 id="orgb057078">#1 … It’s an Emacs REPL</h2>
 <div class="outline-text-2" id="text-orgb057078">
 <p>
-Eshell is an Emacs Lisp REPL. So typing Lisp expressions <i>just work</i>:
+Eshell is an Emacs Lisp REPL. So typing Lisp expressions <i>just works</i>:<!--COMMENT I think "work" should be plural -->
 </p>
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">$ <span style="color: #969896;">(</span>+ 1 2 3<span style="color: #969896;">)</span>
@@ -51,7 +51,7 @@ Eshell is an Emacs Lisp REPL. So typing Lisp expressions <i>just work</i>:
 </div>
 
 <p>
-What makes this interesting, is that the parens are <i>somewhat</i> optional:
+What makes this interesting? The parens are <i>somewhat</i> optional:<!--COMMENT Grammar adjustment -->
 </p>
 <div class="org-src-container">
 <pre class="src src-sh">$ + 1 2 3
