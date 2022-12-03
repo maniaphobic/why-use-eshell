@@ -270,7 +270,7 @@ The <a href="https://github.com/joddie/pcre2el">pcre2el</a> project can convert 
 </p>
 
 <p>
-Let’s create a new macro, called <code>prx</code> that translates the output of the <code>rx</code> macro. Here is the complete snippet I use in my <a href="https://github.com/howardabrams/hamacs/blob/main/ha-eshell.org#regular-expressions">my Emacs configuration file</a>:
+Let’s create a new macro, called <code>prx</code>, that translates the output of the <code>rx</code> macro. Here is the complete snippet I use in my <a href="https://github.com/howardabrams/hamacs/blob/main/ha-eshell.org#regular-expressions">my Emacs configuration file</a>:<!--COMMENT Add a comma after "prx" -->
 </p>
 
 <div class="org-src-container">
@@ -368,7 +368,7 @@ In a shell like bash, you need a <code>for</code> loop and an <code>if</code>. F
 
 <p>
 With <code>eshell</code>, use a <i>predicate filter</i> to combine into a single loop.
-The <code>(x)</code> after a file glob, like <code>*.org</code> filters for files marked as executable:
+The <code>(x)</code> after a file glob, like <code>*.org</code>, filters for files marked as executable:<!--COMMENT Add a comma -->
 </p>
 
 <div class="org-src-container">
@@ -418,7 +418,7 @@ Here is the code:
 </div>
 
 <p>
-Now that I see that my example wasn’t good, as most commands, like <code>chown</code> can accept multiple command line arguments.
+Now that I see that my example wasn’t good, as most commands, like <code>chown</code>, can accept multiple command line arguments.<!--COMMENT Add a comma -->
 </p>
 
 <p>
@@ -510,7 +510,7 @@ $ echo $<span style="color: #f0c674;">$</span>[1] | rg ID
 </div>
 
 <p>
-The code is a bit long, so I wrote the details <a href="https://github.com/howardabrams/hamacs/blob/main/ha-eshell.org#last-results">one my Emacs configuration file</a>.
+The code is a bit long, so I wrote the details <a href="https://github.com/howardabrams/hamacs/blob/main/ha-eshell.org#last-results">in my Emacs configuration file</a>.<!--COMMENT s/one/in/ -->
 </p>
 </div>
 </div>
@@ -659,7 +659,7 @@ So the following works to grab my email addresses that I just extracted, and sen
 </div>
 
 <p>
-If you’re interested, I have a more elaborate (and yet simpler) workflow surrounding sending data back and forth from Eshell to Emacs buffers that I call <a href="https://github.com/howardabrams/hamacs/blob/main/ha-eshell.org#ebb-and-flow-output-to-emacs-buffers">Ebb and Flow</a> … I call my <code>bcat</code> expansion, <code>flow</code>, and a another program, <code>ebb</code>, to copy a command output to a buffer.
+If you’re interested, I have a more elaborate (and yet simpler) workflow surrounding sending data back and forth from Eshell to Emacs buffers that I call <a href="https://github.com/howardabrams/hamacs/blob/main/ha-eshell.org#ebb-and-flow-output-to-emacs-buffers">Ebb and Flow</a> … I call my <code>bcat</code> expansion, <code>flow</code>, and another program, <code>ebb</code>, to copy a command output to a buffer.<!--COMMENT Removed the extraneous "a" -->
 </p>
 
 <p>
@@ -684,7 +684,7 @@ $ ebb
 </div>
 
 <p>
-This <code>ebb</code> call brings up a buffer, <code>*emacs-edit*</code> where we can trim that down to:
+This <code>ebb</code> call brings up a buffer, <code>*emacs-edit*</code>, where we can trim that down to:<!--COMMENT Add a comma -->
 </p>
 <pre class="example" id="org3d517dd">
 banana.org
@@ -753,10 +753,10 @@ Your homework (if you choose) is to:
 <ul class="org-ul">
 <li>Grab the extended <code>prx</code> macro</li>
 <li>See if you want to use my array version of <code>$$</code> variable</li>
-<li>My <code>do</code> loop function is cool</li>
+<li>My <code>do</code> loop function is cool</li><!--COMMENT This is worded strangely -- it doesn't sound like the other list items -->
 <li>Build an <code>org-capture</code> function</li>
-<li>Use <code>bcat</code> to bring buffers <i>into</i> Eshell
-Check out my <code>ebb</code> and <code>flow</code> functions</li>
+<li>Use <code>bcat</code> to bring buffers <i>into</i> Eshell</li><!--COMMENT I'm guessing you want these as separate list items -->
+<li>Check out my <code>ebb</code> and <code>flow</code> functions</li>
 </ul>
 
 <p>
