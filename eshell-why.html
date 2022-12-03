@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- 2022-12-03 Sat 11:10 -->
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Why use EShell?</title>
+<meta name="description" content="The top 10 reasons why one would choose to use Eshell." />
+<meta name="generator" content="Org Mode" />
+<meta http-equiv="X-Clacks-Overhead" content="GNU Terry Pratchett" />
+              <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
+              <link href='http://fonts.googleapis.com/css?family=Source+Serif+Pro:400,700&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
+              <link href='http://fonts.googleapis.com/css?family=Source+Code+Pro:400,700' rel='stylesheet' type='text/css'>
+              <link rel="stylesheet" href="/css/styles.css" type="text/css"/>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+              <script src="/js/magic.js"></script>
+              <link rel="icon" href="/img/dragon.svg">
+              <link rel="shortcut icon" href="/img/dragon-head.png">
+              <meta name="viewport" content="width=device-width, initial-scale=1" />
+</head>
+<body>
+<div id="content" class="content">
+<header>
+<h1 class="title">Why use EShell?</h1>
+</header><p>
+While diving into the source code of Emacs’ Shell (<code>eshell</code>), I found a few gems and thought I’d share the Top 10 reasons why you should give Eshell a second chance.
+</p>
+
+<p>
+What do I mean about a <i>second chance</i>? Most of us try it out and quickly become frustrated. But keep in mind, Eshell is … a <i>shell</i>. It is not a Terminal Emulator. So, if you are using programs that make heavy use of terminal control codes, like <code>tmux</code> or even <a href="https://dev.to/heraldofsolace/replace-your-existing-unix-utilities-with-these-modern-alternatives-2bfo">more modern replacements</a>,  use vterm. If you are doing a lot of file manipulation, use dired. Otherwise, learning the intricacies of <code>eshell</code> is rewarding and fun.
+</p>
+
+<p>
+Emacsians complain that <code>eshell</code> has poor documentation, but I believe that between the chapter on <a href="https://www.masteringemacs.org/article/complete-guide-mastering-eshell">mastering the eshell</a> (which happens to be free). and <a href="eshell-fun.html">my deep dive</a> (oh, and hints on the Internet), I do feel the information is available. This essay is an attempt to show how cool and interesting <code>eshell</code> can be.
+</p>
+
+<p>
+During EmacsConf 2022, I <a href="https://emacsconf.org/2022/talks/eshell/">gave a lightning talk</a> with 10 minutes (actually 14) to present the top 10 Reasons why you Retry Eshell. But the talk ballooned, and I felt the content was <i>too condensed</i> to be useful. This essay should fill in a lot of the details (as well as links to the extension code).
+</p>
+
+<div id="outline-container-orgb057078" class="outline-2">
+<h2 id="orgb057078">#1 … It’s an Emacs REPL</h2>
+<div class="outline-text-2" id="text-orgb057078">
+<p>
+Eshell is an Emacs Lisp REPL. So typing Lisp expressions <i>just work</i>:
+</p>
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">$ <span style="color: #969896;">(</span>+ 1 2 3<span style="color: #969896;">)</span>
+6
+</pre>
+</div>
+
+<p>
+What makes this interesting, is that the parens are <i>somewhat</i> optional:
+</p>
+<div class="org-src-container">
+<pre class="src src-sh">$ + 1 2 3
+6
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org6b14378" class="outline-2">
+<h2 id="org6b14378">#2 … It’s also a Shell</h2>
+<div class="outline-text-2" id="text-org6b14378">
+<p>
+While <code>eshell</code> may look like a <i>shell</i>, like Bash, you should view it as a REPL with parenthesis-less s-expressions.
+</p>
+
+<p>
+Makes sense, because a shell command with options, like:
+</p>
+<div class="org-src-container">
+<pre class="src src-sh">ls -d /tmp
+</pre>
+</div>
+
+<p>
+Looks like this s-expression:
+</p>
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #969896;">(</span>ls <span style="color: #8abeb7;">"-d"</span> <span style="color: #8abeb7;">"/tmp"</span><span style="color: #969896;">)</span>
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-orga7630f5" class="outline-2">
+<h2 id="orga7630f5">#3 … You can Mix these Two <i>Modes</i></h2>
+<div class="outline-text-2" id="text-orga7630f5">
+<p>
+Shells can call <i>subshells</i>, which return their output like a function call, like this Bash command:
+</p>
+<div class="org-src-container">
+<pre class="src src-sh">$ rg red $(cat interesting-files.txt)
+</pre>
+</div>
+
+<p>
+In this Eshell example, I use a text file with filenames as command line arguments to <code>ripgrep</code>. Notice I use braces to state that the content inside the braces is to be evaluated as another Eshell expression:
+</p>
+<div class="org-src-container">
+<pre class="src src-sh">$ rg -i red { cat interesting-files.txt }
+</pre>
+</div>
+
+<p>
+But <code>eshell</code> has another subshell-like feature … Emacs Lisp expressions. And you can mix them together. In my talk, I gave the following <i>overly contrived</i> example:
+‘
+</p>
+<div class="org-src-container">
+<pre class="src src-sh">$ setq afile banana.org   <span style="color: #969896; font-style: italic;"># </span><span style="color: #969896; font-style: italic;">Notice good ol&#8217; setq</span>
+banana.org
+
+$ setq others apple.org cantaloupe.org <span style="color: #969896; font-style: italic;"># </span><span style="color: #969896; font-style: italic;">This doesn&#8217;t work</span>
+$ echo $<span style="color: #f0c674;">others</span>
+apple.org
+
+<span style="color: #969896; font-style: italic;"># </span><span style="color: #969896; font-style: italic;">The function `listify` is like `list`, but for eshell sections:</span>
+$ setq some { listify apple.org cantaloupe.org }
+(<span style="color: #8abeb7;">"apple.org"</span> <span style="color: #8abeb7;">"cantaloupe.org"</span>)
+
+<span style="color: #969896; font-style: italic;"># </span><span style="color: #969896; font-style: italic;">We could also do this, but it require quotes:</span>
+$ setq some (list <span style="color: #8abeb7;">"apple.org"</span> <span style="color: #8abeb7;">"cantaloupe.org"</span> )
+(<span style="color: #8abeb7;">"apple.org"</span> <span style="color: #8abeb7;">"cantaloupe.org"</span>)
+
+$ cons afile others   <span style="color: #969896; font-style: italic;"># </span><span style="color: #969896; font-style: italic;">Not quite, because eshell mode treats</span>
+(<span style="color: #8abeb7;">"afile"</span> . <span style="color: #8abeb7;">"others"</span>)  <span style="color: #969896; font-style: italic;"># </span><span style="color: #969896; font-style: italic;">words as strings, not variables.</span>
+
+<span style="color: #969896; font-style: italic;"># </span><span style="color: #969896; font-style: italic;">But surrounding it in parens activates Eshell mode:</span>
+$ rg -i red (cons others some)
+</pre>
+</div>
+
+<p>
+I love that you can use <code>cons</code> as an Emacs Lisp function, but <code>rg</code> (ripgrep) is an executable.
+</p>
+
+<p>
+Remember the differences:
+</p>
+<ul class="org-ul">
+<li>With <code>(...)</code>, <code>eshell</code> treats it as Lisp, like the last line in my example.</li>
+<li>With <code>{...}</code>, <code>eshell</code> follows these shell-like rules:
+<ul class="org-ul">
+<li>If it looks like a number, eshell converts it to a number</li>
+<li>Otherwise, <code>eshell</code> converts it to a string (quotes, like a shell, groups words)</li>
+<li>What about this mix between functions and executables?
+<ul class="org-ul">
+<li>Functions that begin with <code>eshell/</code> are called first</li>
+<li>Next are executables on your <code>$PATH</code></li>
+<li>Then matching Lisp functions. You can switch this order (see the <a href="https://www.gnu.org/software/emacs/manual/html_node/eshell/Built_002dins.html">eshell-prefer-lisp-functions</a> variable).</li>
+</ul></li>
+</ul></li>
+</ul>
+</div>
+</div>
+<div id="outline-container-org829471d" class="outline-2">
+<h2 id="org829471d">#4 … Emacs is better than Shell</h2>
+<div class="outline-text-2" id="text-org829471d">
+<p>
+If the following works, why would you call <code>expr</code> or <code>bc</code> or <code>dc</code>?
+</p>
+<div class="org-src-container">
+<pre class="src src-sh">$ + 17 5 (* 10 2)
+42
+</pre>
+</div>
+
+<p>
+Why call <code>less</code> or <code>more</code> when you could call <code>view-file</code>?
+</p>
+<div class="org-src-container">
+<pre class="src src-sh">alias less <span style="color: #8abeb7;">'view-file $1'</span>
+</pre>
+</div>
+
+<p>
+With the <code>view-file-mode</code>, you exit with <code>q</code>, just like with <code>less</code>, but you get take advantage of Emacs many file modes.
+</p>
+</div>
+<div id="outline-container-org8a29f27" class="outline-3">
+<h3 id="org8a29f27">Improvement</h3>
+<div class="outline-text-3" id="text-org8a29f27">
+<p>
+The problem with <code>view-file</code> is it takes a single file as an argument. In a shell, we might want to view more than one.
+</p>
+
+<p>
+Let’s make a solution to that:
+</p>
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #969896;">(</span><span style="color: #b5bd68;">defun</span> <span style="color: #de935f;">eshell-fn-on-files</span> <span style="color: #969896;">(</span>fun1 fun2 args<span style="color: #969896;">)</span>
+  <span style="color: #b294bb;">"Call FUN1 on the first element in list, ARGS.</span>
+<span style="color: #b294bb;">Call FUN2 on all the rest of the elements in ARGS."</span>
+  <span style="color: #969896;">(</span><span style="color: #b5bd68;">unless</span> <span style="color: #969896;">(</span>null args<span style="color: #969896;">)</span>
+    <span style="color: #969896;">(</span><span style="color: #b5bd68;">let</span> <span style="color: #969896;">((</span>filenames <span style="color: #969896;">(</span>flatten-list args<span style="color: #969896;">)))</span>
+      <span style="color: #969896;">(</span>funcall fun1 <span style="color: #969896;">(</span>car filenames<span style="color: #969896;">))</span>
+      <span style="color: #969896;">(</span><span style="color: #b5bd68;">when</span> <span style="color: #969896;">(</span>cdr filenames<span style="color: #969896;">)</span>
+        <span style="color: #969896;">(</span>mapcar fun2 <span style="color: #969896;">(</span>cdr filenames<span style="color: #969896;">))))</span>
+    <span style="color: #969896; font-style: italic;">;; </span><span style="color: #969896; font-style: italic;">Return an empty string, as the return value from `</span><span style="color: #81a2be; font-style: italic;">fun1</span><span style="color: #969896; font-style: italic;">'</span>
+    <span style="color: #969896; font-style: italic;">;; </span><span style="color: #969896; font-style: italic;">probably isn't helpful to display in the `</span><span style="color: #81a2be; font-style: italic;">eshell</span><span style="color: #969896; font-style: italic;">' window.</span>
+    <span style="color: #8abeb7;">""</span><span style="color: #969896;">))</span>
+</pre>
+</div>
+
+<p>
+This allows me to make a version of less that calls <code>view-file</code> on the first function given, but open in another window for each additional file:
+</p>
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #969896;">(</span><span style="color: #b5bd68;">defun</span> <span style="color: #de935f;">eshell/less</span> <span style="color: #969896;">(</span><span style="color: #81a2be;">&amp;rest</span> files<span style="color: #969896;">)</span>
+  <span style="color: #b294bb;">"Essentially an alias to the `</span><span style="color: #81a2be;">view-file</span><span style="color: #b294bb;">' function."</span>
+  <span style="color: #969896;">(</span>eshell-fn-on-files 'view-file 'view-file-other-window files<span style="color: #969896;">))</span>
+</pre>
+</div>
+
+<p>
+And then this alias:
+</p>
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #969896;">(</span><span style="color: #b5bd68;">defalias</span> '<span style="color: #de935f;">eshell/more</span> 'eshell/less<span style="color: #969896;">)</span>
+</pre>
+</div>
+</div>
+</div>
+</div>
+<div id="outline-container-orgd46f50b" class="outline-2">
+<h2 id="orgd46f50b">#5 … Better Regular Expressions</h2>
+<div class="outline-text-2" id="text-orgd46f50b">
+<p>
+Can’t remember regular expressions when calling <code>grep</code> or other search commands? Use the <code>rx</code> macro:
+</p>
+<div class="org-src-container">
+<pre class="src src-sh">$ rg (rx (1+ hex) <span style="color: #8abeb7;">"-"</span>)
+
+banana.org
+8::ID: 460545f7-b993-42ec-9736-4276e8035f63
+
+cabbage.md
+4:Sed bibendum.  Fed-add etiam vel tortor sodales tellus ultricies commodo.  Aliquam erat volutpat.  Donec vitae dolor.  Pellentesque tristique imperdiet tortor.  Lorem ipsum dolor sit amet, consectetuer adipiscing elit.
+
+apple.org
+8::ID: 2f71822d-1128-4214-a040-5d2c98656220
+
+cantaloupe.org
+8::ID: 8f64466c-e7ab-4abc-a627-b38f009caac4
+</pre>
+</div>
+<p>
+This uses <code>ripgrep</code> to almost find UUIDs in files in the current directory.
+</p>
+
+<p>
+Wait, why is that paragraph showing? Ah, the word <code>fed-add</code> is two hex strings with a dash.
+</p>
+
+<p>
+We could re-run the search, but add something like <code>ID:</code> to the expression, but we could also expand our regular expression capabilities…
+</p>
+</div>
+<div id="outline-container-org6280a09" class="outline-3">
+<h3 id="org6280a09">Improvement</h3>
+<div class="outline-text-3" id="text-org6280a09">
+<p>
+While the <code>rx</code> macro is freaking cool for Emacs Lisp … it doesn’t always translate to regular expressions accepted by most programs.
+</p>
+
+<p>
+The <a href="https://github.com/joddie/pcre2el">pcre2el</a> project can convert from a Lisp regular expression to a <a href="http://www.pcre.org/">PCRE</a> (Perl Compatible Regular Expression), acceptable by <a href="https://github.com/BurntSushi/ripgrep">ripgrep</a>.
+</p>
+
+<p>
+Let’s create a new macro, called <code>prx</code> that translates the output of the <code>rx</code> macro. Here is the complete snippet I use in my <a href="https://github.com/howardabrams/hamacs/blob/main/ha-eshell.org#regular-expressions">my Emacs configuration file</a>:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #969896;">(</span><span style="color: #b5bd68;">use-package</span> <span style="color: #81a2be;">pcre2el</span>
+  <span style="color: #b294bb;">:straight</span> <span style="color: #969896;">(</span><span style="color: #b294bb;">:host</span> github <span style="color: #b294bb;">:repo</span> <span style="color: #8abeb7;">"joddie/pcre2el"</span><span style="color: #969896;">)</span>
+  <span style="color: #b294bb;">:config</span>
+  <span style="color: #969896;">(</span><span style="color: #b5bd68;">defmacro</span> <span style="color: #de935f;">prx</span> <span style="color: #969896;">(</span><span style="color: #81a2be;">&amp;rest</span> expressions<span style="color: #969896;">)</span>
+    <span style="color: #b294bb;">"Convert the rx-compatible regular EXPRESSIONS to PCRE.</span>
+<span style="color: #b294bb;">  Most shell applications accept Perl Compatible Regular Expressions."</span>
+    `<span style="color: #969896;">(</span>rxt-elisp-to-pcre <span style="color: #969896;">(</span><span style="color: #b5bd68;">rx</span> ,@expressions<span style="color: #969896;">))))</span>
+</pre>
+</div>
+
+<p>
+Now we can use the <code>rx</code> expression of  <code>(= 8 hex)</code> to mean <i>8 hexadecimal characters</i>, to expand our a regular expression for accurate UUIDs:
+</p>
+<div class="org-src-container">
+<pre class="src src-sh">$ rg (prx (seq (= 8 hex) <span style="color: #8abeb7;">"-"</span> (= 3 (seq (= 4 hex) <span style="color: #8abeb7;">"-"</span>)) (= 12 hex)))
+
+banana.org
+8::ID: 460545f7-b993-42ec-9736-4276e8035f63
+
+apple.org
+8::ID: 2f71822d-1128-4214-a040-5d2c98656220
+
+cantaloupe.org
+8::ID: 8f64466c-e7ab-4abc-a627-b38f009caac4
+</pre>
+</div>
+
+<p>
+Is that easier to read, write and remember than?
+</p>
+<pre class="example" id="org698ddbc">
+$ rg [[:xdigit:]]{8}-(?:[[:xdigit:]]{4}-){3}[[:xdigit:]]{12}
+</pre>
+</div>
+</div>
+<div id="outline-container-orgce51523" class="outline-3">
+<h3 id="orgce51523">Better Improvement</h3>
+<div class="outline-text-3" id="text-orgce51523">
+<p>
+Why not <i>extend</i> the <code>rx</code> macro with your own favorite key words:
+</p>
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #969896;">(</span><span style="color: #b5bd68;">defmacro</span> <span style="color: #de935f;">prx</span> <span style="color: #969896;">(</span><span style="color: #81a2be;">&amp;rest</span> expressions<span style="color: #969896;">)</span>
+    <span style="color: #b294bb;">"Convert the rx-compatible regular EXPRESSIONS to PCRE.</span>
+<span style="color: #b294bb;">  Most shell applications accept Perl Compatible Regular Expressions."</span>
+    `<span style="color: #969896;">(</span><span style="color: #b5bd68;">rx-let</span> <span style="color: #969896;">((</span>integer <span style="color: #969896;">(</span>1+ digit<span style="color: #969896;">))</span>
+              <span style="color: #969896;">(</span>float   <span style="color: #969896;">(</span>seq integer <span style="color: #8abeb7;">"."</span> integer<span style="color: #969896;">))</span>
+              <span style="color: #969896;">(</span>b256    <span style="color: #969896;">(</span>seq <span style="color: #969896;">(</span>optional <span style="color: #969896;">(</span><span style="color: #b5bd68;">or</span> <span style="color: #8abeb7;">"1"</span> <span style="color: #8abeb7;">"2"</span><span style="color: #969896;">))</span>
+                            <span style="color: #969896;">(</span>regexp <span style="color: #8abeb7;">"[0-9]\\{1,2\\}"</span><span style="color: #969896;">)))</span>
+              <span style="color: #969896;">(</span>ipaddr  <span style="color: #969896;">(</span>seq b256 <span style="color: #8abeb7;">"."</span> b256 <span style="color: #8abeb7;">"."</span> b256 <span style="color: #8abeb7;">"."</span> b256<span style="color: #969896;">))</span>
+              <span style="color: #969896;">(</span>time    <span style="color: #969896;">(</span>seq digit <span style="color: #969896;">(</span>optional digit<span style="color: #969896;">)</span> <span style="color: #8abeb7;">":"</span> <span style="color: #969896;">(</span>= 2 digit<span style="color: #969896;">)</span> <span style="color: #969896;">(</span>optional <span style="color: #8abeb7;">":"</span> <span style="color: #969896;">(</span>= 2 digit<span style="color: #969896;">))))</span>
+              <span style="color: #969896;">(</span>email   <span style="color: #969896;">(</span>seq <span style="color: #969896;">(</span>1+ <span style="color: #969896;">(</span>regexp <span style="color: #8abeb7;">"[</span><span style="color: #81a2be;">^</span><span style="color: #8abeb7;">,&lt; ]"</span><span style="color: #969896;">))</span> <span style="color: #8abeb7;">"@"</span> <span style="color: #969896;">(</span>1+ <span style="color: #969896;">(</span>seq <span style="color: #969896;">(</span>1+ <span style="color: #969896;">(</span>any alnum <span style="color: #8abeb7;">"-"</span><span style="color: #969896;">)))</span> <span style="color: #8abeb7;">"."</span><span style="color: #969896;">)</span> <span style="color: #969896;">(</span>1+ alnum<span style="color: #969896;">)))</span>
+              <span style="color: #969896;">(</span>date    <span style="color: #969896;">(</span>seq <span style="color: #969896;">(</span>= 2 digit<span style="color: #969896;">)</span> <span style="color: #969896;">(</span><span style="color: #b5bd68;">or</span> <span style="color: #8abeb7;">"/"</span> <span style="color: #8abeb7;">"-"</span><span style="color: #969896;">)</span> <span style="color: #969896;">(</span>= 2 digit<span style="color: #969896;">)</span> <span style="color: #969896;">(</span><span style="color: #b5bd68;">or</span> <span style="color: #8abeb7;">"/"</span> <span style="color: #8abeb7;">"-"</span><span style="color: #969896;">)</span> <span style="color: #969896;">(</span>= 4 digit<span style="color: #969896;">)))</span>
+              <span style="color: #969896;">(</span>ymd     <span style="color: #969896;">(</span>seq <span style="color: #969896;">(</span>= 4 digit<span style="color: #969896;">)</span> <span style="color: #969896;">(</span><span style="color: #b5bd68;">or</span> <span style="color: #8abeb7;">"/"</span> <span style="color: #8abeb7;">"-"</span><span style="color: #969896;">)</span> <span style="color: #969896;">(</span>= 2 digit<span style="color: #969896;">)</span> <span style="color: #969896;">(</span><span style="color: #b5bd68;">or</span> <span style="color: #8abeb7;">"/"</span> <span style="color: #8abeb7;">"-"</span><span style="color: #969896;">)</span> <span style="color: #969896;">(</span>= 2 digit<span style="color: #969896;">)))</span>
+              <span style="color: #969896;">(</span>uuid    <span style="color: #969896;">(</span>seq <span style="color: #969896;">(</span>= 8 hex<span style="color: #969896;">)</span> <span style="color: #8abeb7;">"-"</span> <span style="color: #969896;">(</span>= 3 <span style="color: #969896;">(</span>seq <span style="color: #969896;">(</span>= 4 hex<span style="color: #969896;">)</span> <span style="color: #8abeb7;">"-"</span><span style="color: #969896;">))</span> <span style="color: #969896;">(</span>= 12 hex<span style="color: #969896;">)))</span>
+              <span style="color: #969896;">(</span>guid    <span style="color: #969896;">(</span>seq uuid<span style="color: #969896;">)))</span>
+       <span style="color: #969896;">(</span>rxt-elisp-to-pcre <span style="color: #969896;">(</span><span style="color: #b5bd68;">rx</span> ,@expressions<span style="color: #969896;">)))))</span>
+</pre>
+</div>
+
+<p>
+Now our command would be:
+</p>
+<div class="org-src-container">
+<pre class="src src-sh">$ rg (prx uuid)
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org2e95cc7" class="outline-2">
+<h2 id="org2e95cc7">#6 … Loops are Better with Predicates</h2>
+<div class="outline-text-2" id="text-org2e95cc7">
+<p>
+Let’s say you want to remove the execute bit from files that have it.
+</p>
+
+<p>
+In a shell like bash, you need a <code>for</code> loop and an <code>if</code>. For instance:
+</p>
+<div class="org-src-container">
+<pre class="src src-sh"><span style="color: #b5bd68;">for</span> F<span style="color: #b5bd68;"> in</span> *.org
+<span style="color: #b5bd68;">do</span>
+  <span style="color: #b5bd68;">if</span> [[ $(stat --format %A $<span style="color: #f0c674;">F</span> | cut -c4) = <span style="color: #8abeb7;">"x"</span> ]]
+  <span style="color: #b5bd68;">then</span>
+    chmod -x $<span style="color: #f0c674;">F</span>
+  <span style="color: #b5bd68;">fi</span>
+<span style="color: #b5bd68;">done</span>
+</pre>
+</div>
+
+<p>
+With <code>eshell</code>, use a <i>predicate filter</i> to combine into a single loop.
+The <code>(x)</code> after a file glob, like <code>*.org</code> filters for files marked as executable:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-sh"><span style="color: #b5bd68;">for</span> F<span style="color: #b5bd68;"> in</span> *.org(x) {
+  chmod -x $<span style="color: #f0c674;">F</span>
+}
+</pre>
+</div>
+</div>
+<div id="outline-container-org6c124e0" class="outline-3">
+<h3 id="org6c124e0">Improvement with do Loop</h3>
+<div class="outline-text-3" id="text-org6c124e0">
+<p>
+Since we often type loops to execute a command, what about creating a function that can do this all in one go?
+</p>
+
+<p>
+This <code>do</code> function splits the arguments on a double colon .. where the left side is a single statement to run, and the right side is a list of files.
+</p>
+
+<p>
+It loops through each file, creating an eshell command with the file appended.
+</p>
+
+<p>
+With this, I can remove the execute bit on all CSV files that have it.
+</p>
+<div class="org-src-container">
+<pre class="src src-sh"><span style="color: #b5bd68;">do</span> chmod -x :: *.csv(x)
+</pre>
+</div>
+
+<p>
+Here is the code:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #969896;">(</span><span style="color: #b5bd68;">defun</span> <span style="color: #de935f;">eshell/do</span> <span style="color: #969896;">(</span><span style="color: #81a2be;">&amp;rest</span> args<span style="color: #969896;">)</span>
+  <span style="color: #b294bb;">"Execute commands over lst."</span>
+  <span style="color: #969896;">(</span><span style="color: #b5bd68;">seq-let</span> <span style="color: #969896;">(</span>cmd lst<span style="color: #969896;">)</span> <span style="color: #969896;">(</span><span style="color: #b5bd68;">-split-on</span> <span style="color: #8abeb7;">"::"</span> args<span style="color: #969896;">)</span>
+    <span style="color: #969896;">(</span><span style="color: #b5bd68;">dolist</span> <span style="color: #969896;">(</span>file
+              <span style="color: #969896;">(</span>flatten-list <span style="color: #969896;">(</span>append lst<span style="color: #969896;">)))</span>
+      <span style="color: #969896;">(</span>add-to-list 'cmd file<span style="color: #969896;">)</span>
+      <span style="color: #969896;">(</span>eshell-named-command
+            <span style="color: #969896;">(</span>car cmd<span style="color: #969896;">)</span> <span style="color: #969896;">(</span>cdr cmd<span style="color: #969896;">)))))</span>
+</pre>
+</div>
+
+<p>
+Now that I see that my example wasn’t good, as most commands, like <code>chown</code> can accept multiple command line arguments.
+</p>
+
+<p>
+You get the idea. I do have <a href="https://github.com/howardabrams/hamacs/blob/main/ha-eshell.org#map-over-files">a larger version</a> that allows me to add an <code>_</code> and have it be replaced by the filename.
+</p>
+</div>
+</div>
+</div>
+<div id="outline-container-orgb3213e5" class="outline-2">
+<h2 id="orgb3213e5">#7 … Output of Last Command</h2>
+<div class="outline-text-2" id="text-orgb3213e5">
+<p>
+Most shells have the special variables <code>$?</code> for the exit code of the last command.
+</p>
+
+<p>
+While reading through the source code, I noticed that <code>$$</code> refers to the <i>output</i> of the last command.
+</p>
+<div class="org-src-container">
+<pre class="src src-sh">$ echo <span style="color: #8abeb7;">"Hello World!"</span>
+Hello World!
+$ echo $<span style="color: #f0c674;">$</span> | tr o u
+Hellu Wurld!
+</pre>
+</div>
+<p>
+But it doesn’t always work:
+</p>
+<div class="org-src-container">
+<pre class="src src-sh">$ ls
+apple.org  banana.org  cantaloupe.org  interesting-files.txt
+$ echo $<span style="color: #f0c674;">$</span>
+$
+</pre>
+</div>
+<p>
+That is because the call to <code>ls</code> returns <code>t</code> or <code>nil</code> for external commands.
+</p>
+</div>
+<div id="outline-container-orgae08d1c" class="outline-3">
+<h3 id="orgae08d1c">Improvement to $$</h3>
+<div class="outline-text-3" id="text-orgae08d1c">
+<p>
+After running every command, Eshell sets these variables:
+</p>
+
+<ul class="org-ul">
+<li><code>eshell-last-input-start</code></li>
+<li><code>eshell-last-input-end</code></li>
+<li><code>eshell-last-output-start</code></li>
+<li><code>eshell-last-output-end</code></li>
+</ul>
+
+<p>
+I created a function that I hook into Eshell, that’s called after every command.
+</p>
+
+<p>
+Using <code>buffer-substring</code>, I store the output from the buffer into a global variable, and extend Eshell’s <i>special variables</i> list.
+</p>
+
+<p>
+In my Emacs configuration, I turned this into a <i>ring</i>, so while <code>$$</code> works, so does array sub-scripting on that variable:
+</p>
+<div class="org-src-container">
+<pre class="src src-sh">$ ls
+apple.org  asparagus.md  banana.org  broccoli.md  cabbage.md  cantaloupe.org  interesting-files.txt
+
+$ rg ID *
+apple.org
+6::ID: AF1ED3CD-0E05-4909-A7D9-26AD12551FA3
+
+banana.org
+8::ID: 83f5b53e-7a79-48fe-90da-469610543f67
+
+cantaloupe.org
+8::ID: 1e715bd7-a504-4eed-9ef0-444585d3d028
+
+$ echo $<span style="color: #f0c674;">$</span> | rg org
+apple.org
+banana.org
+cantaloupe.org
+
+$ echo $<span style="color: #f0c674;">$</span>[1] | rg ID
+6::ID: AF1ED3CD-0E05-4909-A7D9-26AD12551FA3
+8::ID: 83f5b53e-7a79-48fe-90da-469610543f67
+8::ID: 1e715bd7-a504-4eed-9ef0-444585d3d028
+</pre>
+</div>
+
+<p>
+The code is a bit long, so I wrote the details <a href="https://github.com/howardabrams/hamacs/blob/main/ha-eshell.org#last-results">one my Emacs configuration file</a>.
+</p>
+</div>
+</div>
+</div>
+<div id="outline-container-org89b92a6" class="outline-2">
+<h2 id="org89b92a6">#8 … Redirect Back to Emacs</h2>
+<div class="outline-text-2" id="text-org89b92a6">
+<p>
+The output of a command can go to <code>kill-ring</code>:
+</p>
+<div class="org-src-container">
+<pre class="src src-sh">$ rg ID &gt;/dev/kill
+</pre>
+</div>
+
+<p>
+Or the clipboard (for pasting into files outside of Emacs):
+</p>
+<div class="org-src-container">
+<pre class="src src-sh">$ rg ID &gt;/dev/clip
+</pre>
+</div>
+
+<p>
+You can send that output into a buffer:
+</p>
+<div class="org-src-container">
+<pre class="src src-sh">$ rg ID &gt; <span style="color: #969896; font-style: italic;">#</span><span style="color: #969896; font-style: italic;">&lt;new-scratch&gt;</span>
+</pre>
+</div>
+
+<p>
+Or into an existing buffer where the point is:
+</p>
+<div class="org-src-container">
+<pre class="src src-sh">rg ID &gt;&gt;&gt; <span style="color: #969896; font-style: italic;">#</span><span style="color: #969896; font-style: italic;">&lt;scratch&gt;</span>
+</pre>
+</div>
+
+<p>
+If you are taking notes, this requires you to coordinate two buffers (placing your cursor point at the location where the output should go).
+</p>
+</div>
+<div id="outline-container-org14a89bd" class="outline-3">
+<h3 id="org14a89bd">Improvement :: Engineering Notebook</h3>
+<div class="outline-text-3" id="text-org14a89bd">
+<p>
+Create a <i>capture template</i> that takes a string (or if called interactively, the <i>region</i>) and that does an <code>:immediate-finish</code> after inserting that string (with the <code>%i</code> string) to a file:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #969896;">(</span>add-to-list 'org-capture-templates
+             `<span style="color: #969896;">(</span><span style="color: #8abeb7;">"e"</span> <span style="color: #8abeb7;">"Contents to Engineering Notebook"</span> plain
+               <span style="color: #969896;">(</span>file+datetree org-default-notes-file <span style="color: #8abeb7;">"Notes"</span><span style="color: #969896;">)</span>
+               <span style="color: #8abeb7;">"#+begin_example\n%i\n#+end_example\n"</span>
+               <span style="color: #b294bb;">:immediate-finish</span> t <span style="color: #b294bb;">:empty-lines</span> 1<span style="color: #969896;">))</span>
+</pre>
+</div>
+
+<p>
+Create a wraper function to call <a href="org-capture-string">org-capture-string</a>:
+</p>
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #969896;">(</span><span style="color: #b5bd68;">defun</span> <span style="color: #de935f;">eshell-to-engineering-notebook</span> <span style="color: #969896;">(</span>string<span style="color: #969896;">)</span>
+  <span style="color: #b294bb;">"Write STRING to our enginnering notebook using org-capture."</span>
+  <span style="color: #969896;">(</span>org-capture-string string <span style="color: #8abeb7;">"e"</span><span style="color: #969896;">))</span>
+</pre>
+</div>
+
+<p>
+Add our new function to :
+</p>
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #969896;">(</span>add-to-list 'eshell-virtual-targets
+             '<span style="color: #969896;">(</span><span style="color: #8abeb7;">"/dev/e"</span> eshell-to-engineering-notebook nil<span style="color: #969896;">))</span>
+</pre>
+</div>
+
+<p>
+Now the following redirect writes into your <code>org-default-notes-file</code> under today’s date:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-sh">$ rg ID &gt; /dev/e
+</pre>
+</div>
+</div>
+</div>
+</div>
+<div id="outline-container-org78479a0" class="outline-2">
+<h2 id="org78479a0">#9 … Use Emacs Buffers</h2>
+<div class="outline-text-2" id="text-org78479a0">
+<p>
+Why leave the results of <code>eshell</code> commands in the <code>*eshell*</code> buffer? Send the output into a buffer where you can use it. Here’s a call to <code>ripgrep</code>:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-sh">rg --no-heading (prx email) user-access.csv &gt; <span style="color: #969896; font-style: italic;">#</span><span style="color: #969896; font-style: italic;">&lt;almost-grep&gt;</span>
+</pre>
+</div>
+<p>
+When you switch to <code>almost-grep</code> buffer, turn on <code>grep-mode</code>, you can jump around as if you called <code>grep</code> instead.
+</p>
+
+<p>
+Perhaps I’m good with <code>ripgrep</code>, but not good with <code>cut</code> or <code>awk</code> and unsure how to extract the email address from all the people in my database? First, send it to a buffer:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-sh">rg -IN (prx email) user-access.csv &gt; <span style="color: #969896; font-style: italic;">#</span><span style="color: #969896; font-style: italic;">&lt;names-data&gt;</span>
+</pre>
+</div>
+
+<p>
+Now I can switch to this buffer, and edit the data directly using Emacs commands. If you want to know more about my easy column technique that I used during the presentation, the code is <a href="https://github.com/howardabrams/hamacs/blob/main/ha-data.org">in my Emacs Configuration file</a>.
+</p>
+</div>
+
+<div id="outline-container-orgfef90de" class="outline-3">
+<h3 id="orgfef90de">Improvement: <i>bcat</i></h3>
+<div class="outline-text-3" id="text-orgfef90de">
+<p>
+Eshell doesn’t do pipes from buffers as standard in. I think that is an over-sight. This might be useful:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #969896;">(</span><span style="color: #b5bd68;">defun</span> <span style="color: #de935f;">eshell/bcat</span> <span style="color: #969896;">(</span><span style="color: #81a2be;">&amp;rest</span> args<span style="color: #969896;">)</span>
+  <span style="color: #b294bb;">"Output the contents of one or more buffers as a string. "</span>
+  <span style="color: #969896; font-style: italic;">;; </span><span style="color: #969896; font-style: italic;">Convert args (either buffer refs or strings) into buffers:</span>
+  <span style="color: #969896;">(</span><span style="color: #b5bd68;">let</span> <span style="color: #969896;">((</span>buffers <span style="color: #969896;">(</span>mapcar #'get-buffer args<span style="color: #969896;">)))</span>
+    <span style="color: #969896; font-style: italic;">;; </span><span style="color: #969896; font-style: italic;">Combine output from all buffers, separated by newlines:</span>
+    <span style="color: #969896;">(</span>mapconcat <span style="color: #969896;">(</span><span style="color: #b5bd68;">lambda</span> <span style="color: #969896;">(</span>buf<span style="color: #969896;">)</span>
+                 <span style="color: #969896;">(</span><span style="color: #b5bd68;">save-window-excursion</span>
+                   <span style="color: #969896;">(</span>switch-to-buffer buf<span style="color: #969896;">)</span>
+                   <span style="color: #969896;">(</span>buffer-substring-no-properties <span style="color: #969896;">(</span>point-min<span style="color: #969896;">)</span> <span style="color: #969896;">(</span>point-max<span style="color: #969896;">))))</span>
+               buffers <span style="color: #8abeb7;">"\n"</span><span style="color: #969896;">)))</span>
+</pre>
+</div>
+
+<p>
+So the following works to grab my email addresses that I just extracted, and send them out to another program:
+</p>
+<div class="org-src-container">
+<pre class="src src-sh">$ bcat <span style="color: #969896; font-style: italic;">#</span><span style="color: #969896; font-style: italic;">&lt;names-data&gt; | ~/bin/code-review -s 'Issue #47' 3e729973</span>
+</pre>
+</div>
+
+<p>
+If you’re interested, I have a more elaborate (and yet simpler) workflow surrounding sending data back and forth from Eshell to Emacs buffers that I call <a href="https://github.com/howardabrams/hamacs/blob/main/ha-eshell.org#ebb-and-flow-output-to-emacs-buffers">Ebb and Flow</a> … I call my <code>bcat</code> expansion, <code>flow</code>, and a another program, <code>ebb</code>, to copy a command output to a buffer.
+</p>
+
+<p>
+For instance:
+</p>
+<div class="org-src-container">
+<pre class="src src-sh">$ rg -i red  <span style="color: #969896; font-style: italic;"># </span><span style="color: #969896; font-style: italic;">a too-simple search expression</span>
+banana.org
+15:  - Red
+
+cabbage.md
+12:  * Red
+
+apple.org
+21:  - Red Delicious
+
+asparagus.md
+4:Nullam tempus. Red bug by moonlight. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.
+
+$ ebb
+</pre>
+</div>
+
+<p>
+This <code>ebb</code> call brings up a buffer, <code>*emacs-edit*</code> where we can trim that down to:
+</p>
+<pre class="example" id="org3d517dd">
+banana.org
+cabbage.md
+apple.org
+</pre>
+
+<p>
+Hitting the <code>Q</code> key closes that buffer, returning to <code>eshell</code>, where we can type:
+</p>
+<div class="org-src-container">
+<pre class="src src-sh"> $ rg -i pink { flow }
+apple.org
+13:  - Pink Lady
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgddd9d4e" class="outline-2">
+<h2 id="orgddd9d4e">#10 … Simply cd to Remote Systems</h2>
+<div class="outline-text-2" id="text-orgddd9d4e">
+<p>
+This command uses SSH to jump to my host, goblin, start a root session, and start in the <code>etc</code> directory.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-sh">$ cd /ssh:goblin|sudo:goblin:/etc
+</pre>
+</div>
+
+<p>
+Remember that Tramp can be finicky if you start blinging your remote hosts with oh my zshell, and whatnot, so your mileage may vary.
+</p>
+</div>
+</div>
+<div id="outline-container-org5ce4f5e" class="outline-2">
+<h2 id="org5ce4f5e">Summary</h2>
+<div class="outline-text-2" id="text-org5ce4f5e">
+<p>
+Use <code>eshell</code> if want to:
+</p>
+<ul class="org-ul">
+<li>Quick way to run commands and Emacs functions as a REPL, or</li>
+<li>Run an OS program and process the output with Emacs functions</li>
+</ul>
+
+<p>
+Be careful if you need any of the following:
+</p>
+<ul class="org-ul">
+<li>Complicate curses-like output</li>
+<li>Shell programming features or advanced pipe</li>
+<li>Remote systems without key-based access (no passwords)</li>
+</ul>
+
+<p>
+Like Emacs, make Eshell your own. Feel free to steal my configuration:  <a href="https://is.gd/hamacs_eshell">https://is.gd/hamacs_eshell</a>
+</p>
+
+<p>
+Your homework (if you choose) is to:
+</p>
+
+<ul class="org-ul">
+<li>Grab the extended <code>prx</code> macro</li>
+<li>See if you want to use my array version of <code>$$</code> variable</li>
+<li>My <code>do</code> loop function is cool</li>
+<li>Build an <code>org-capture</code> function</li>
+<li>Use <code>bcat</code> to bring buffers <i>into</i> Eshell
+Check out my <code>ebb</code> and <code>flow</code> functions</li>
+</ul>
+
+<p>
+Did I mentioned that I’m on the <i>birdlessland</i> of Mastodon: <a href="https://emacs.ch/@howard">@howard@emacs.ch</a>
+</p>
+</div>
+</div>
+</div>
+<div id="postamble" class="status">
+<p class="date">Date: 2022-09-13 September</p>
+<p class="date">Created: 2022-12-03 Sat 11:10</p>
+<p class="validation"><a href="https://validator.w3.org/check?uri=referer">Validate</a></p>
+</div>
+</body>
+</html>
